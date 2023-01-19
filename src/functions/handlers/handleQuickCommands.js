@@ -9,10 +9,8 @@ module.exports = (client) => {
         const quickCommandFolder = fs
             .readdirSync(`./src/_quickCommands`)
             .filter((file) => file.endsWith(".js"));
-        for (const file of quickCommandFolder) {
-            const command = require(`../../_quickCommands/${file}`);            
+        for (const file of quickCommandFolder) {          
             console.log(`Registered command: ${require(`../../_quickCommands/${file}`)(client).name}!`);
-            console.log(command(client).name);
         }
     };
     // const commandFolder = fs.readdirSync(`./src/_quickCommands`);
