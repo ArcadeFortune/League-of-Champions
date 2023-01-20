@@ -24,12 +24,20 @@ module.exports = (client) => {
         }
 
         const http = require("node:https");
+        const cheerio = require("cheerio");
 
-        const req = http.request("https://kirie-headquarters.netlify.app/alessio%20copy/", (res) => {
+        const req = http.request("https://www.leagueoflegends.com/en-us/champions/", (res) => {
             const data = [];
 
             res.on("data", (_) => data.push(_));
-            res.on("end", () => console.log(data.join()));
+            res.on("end", () => {
+
+                console.log(typeof data.join())
+                const $ = cheerio.load(data.join());
+                const champion = $(".style\_\_Text-n3ovyt-3__gMLOLF");
+                console.log($.html());
+            });
+            
         });
 
         req.end();
