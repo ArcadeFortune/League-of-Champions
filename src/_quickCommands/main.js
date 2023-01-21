@@ -1,56 +1,77 @@
-module.exports = (client) => {
+module.exports = async (client) => {
     const data = {
         name: "Champion Checker",
     };
-    client.on("messageCreate", (message) => {
+    client.on("messageCreate", async (message) => {
         if (message.author.bot) return;
         //////////////////////      CODE      ////////////////////////////
-        const everyChampion = fetchEveryChampion(); //array
         const everyAbilites = fetchEveryAbilities(); //array
         const currentChampion = firstWordOf(message);
         const currentAbility = restOf(message, currentChampion);
-        if (
-            isCommand(
-                currentChampion,
-                everyChampion,
-                currentAbility,
-                everyAbilites
-            )
-        ) {
-            const jsonScrape = scrapeWebsite(currentChampion, currentAbility);
-            const sortedScrape = sortJsonScrape(jsonScrape);
-            const finalAnswer = beautifyJson(jsonScrape);
-            message.reply(finalAnswer);
-        }
 
-        const http = require("node:https");
-        const cheerio = require("cheerio");
-
-        const req = http.request("https://www.leagueoflegends.com/en-us/champions/", (res) => {
-            const data = [];
-
-            res.on("data", (_) => data.push(_));
-            res.on("end", () => {
-
-                console.log(typeof data.join())
-                const $ = cheerio.load(data.join());
-                const champion = $(".style\_\_Text-n3ovyt-3__gMLOLF");
-                console.log($.html());
-            });
-            
-        });
-
-        req.end();
+        const everyChampion = await fetchEveryChampion(
+            currentChampion,
+            currentAbility,
+            everyAbilites
+        ); //array
+        // console.log(
+        //     currentChampion,
+        //     everyChampion,
+        //     currentAbility,
+        //     everyAbilites
+        // );
+        // if (
+        //     await isCommand(
+        //         currentChampion,
+        //         everyChampion,
+        //         currentAbility,
+        //         everyAbilites
+        //     )
+        // ) {
+        //     const jsonScrape = scrapeWebsite(currentChampion, currentAbility);
+        //     const sortedScrape = sortJsonScrape(jsonScrape);
+        //     const finalAnswer = beautifyJson(jsonScrape);
+        //     message.reply(finalAnswer);
+        // }
     });
 
-    function fetchEveryChampion() {
-        var everyChampionArray = [];
+    async function fetchEveryChampion(
+        currentChampion,
+        currentAbility,
+        everyAbilites
+    ) {
         //TODO////////////////////////////////////////////////////////////
+        const https = require("https");
+        const cheerio = require("cheerio");
 
-        everyChampionArray.push("aatrox", "ahri");
+        function fetchChampions() {
+            var champions = [];
+            https.get(
+                "https://www.leagueoflegends.com/en-us/champions/",
+                (res) => {
+                    const data = [];
+
+                    res.on("data", (_) => data.push(_));
+                    res.on("end", () => {
+                        const $ = cheerio.load(data.join());
+                        const championSpans = $(
+                            "span.style__Text-n3ovyt-3.gMLOLF"
+                        );
+                        championSpans.each(function (i, elem) {
+                            champions.push($(this).text());
+                        });
+                        //         console.log(currentChampion, currentAbility, everyAbilites);
+                        //  console.log(champions);
+                        //         console.log(currentChampion, currentAbility, everyAbilites);
+                    });
+                }
+            );
+        }
+
+        fetchChampions();
+        return ["ahri"];
 
         //TODO////////////////////////////////////////////////////////////
-        return everyChampionArray;
     }
 
     function fetchEveryAbilities() {
@@ -65,7 +86,7 @@ module.exports = (client) => {
         return message.content.substring(firstWordOfMessage.length + 1);
     }
 
-    function isCommand(
+    async function isCommand(
         firstWordOfMessage,
         everyChampion,
         restOfMessage,
@@ -92,3 +113,30 @@ module.exports = (client) => {
 
     return data;
 };
+
+
+//get all champions
+const https = require("https");
+const cheerio = require("cheerio");
+
+var champions = [];
+https.get(
+    "https://www.leagueoflegends.com/en-us/champions/",
+    (res) => {
+        const data = [];
+
+        res.on("data", (_) => data.push(_));
+        res.on("end", () => {
+            const $ = cheerio.load(data.join());
+            const championSpans = $(
+                "span.style__Text-n3ovyt-3.gMLOLF"
+            );
+            championSpans.each(function (i, elem) {
+                champions.push($(this).text());
+            });
+            //         console.log(currentChampion, currentAbility, everyAbilites);
+             console.log(champions);
+            //         console.log(currentChampion, currentAbility, everyAbilites);
+        });
+    }
+);
