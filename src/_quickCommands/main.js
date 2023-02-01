@@ -2,7 +2,7 @@ module.exports = (client) => {
     const data = {
         name: "Champion Checker",
     };
-    client.on("messageCreate", (message) => {
+    client.on("messageCreate", async (message) => {
         if (message.author.bot) return;
 
         //////////////////////      CODE      ////////////////////////////
@@ -11,14 +11,23 @@ module.exports = (client) => {
         const currentChampion = firstWordOf(message); //string
         const currentAbility = restOf(message, currentChampion); //string
 
-        if (isCommand(currentChampion,everyChampion,currentAbility,everyAbilites)) {
-            const jsonScrape = scrapeWebsite(currentChampion, currentAbility);
-            const sortedScrape = sortJsonScrape(jsonScrape);
+        if (
+            isCommand(
+                currentChampion,
+                everyChampion,
+                currentAbility,
+                everyAbilites
+            )
+        ) {
+            //the main scrape
+            const jsonScrape = await scrapeWebsite(
+                currentChampion,
+                currentAbility
+            );
             const finalAnswer = beautifyJson(jsonScrape);
             message.reply(finalAnswer);
         }
     });
-
 
     function fetchEveryChampion() {
         return everyChampionFetched;
@@ -43,18 +52,21 @@ module.exports = (client) => {
         everyAbilites
     ) {
         return (
-            (everyChampion.includes(firstWordOfMessage.toLowerCase()) && !restOfMessage) ||
+            (everyChampion.includes(firstWordOfMessage.toLowerCase()) &&
+                !restOfMessage) ||
             (everyChampion.includes(firstWordOfMessage.toLowerCase()) &&
                 everyAbilites.includes(restOfMessage.toLowerCase()))
         ); //true or false
     }
 
-    function scrapeWebsite(champion, ability) {
-        return champion + " " + ability;
-    }
+    async function scrapeWebsite(champion, ability) {
+        const url = `https://leagueoflegends.fandom.com/wiki/${champion}/LoL`;
+        const search = `#mw-content-text > div.mw-parser-output > div.skill.skill_${ability} > div > div > div.champion-ability__header > aside > section`;
 
-    function sortJsonScrape(jsonScrape) {
-        return {}; //perhaps useless
+        let res = await axios.get(url);
+        let $ = cheerio.load(res.data);
+        const fetched = $(search).text();
+        return fetched.replace(/\s{2,}/g, "\n");
     }
 
     function beautifyJson(scrape) {
@@ -64,21 +76,29 @@ module.exports = (client) => {
     return data;
 };
 
-//get every champion each time the bot restarts.
-const https = require("https");
 const cheerio = require("cheerio");
+const axios = require("axios");
+const https = require("https");
+const CronJob = require("cron").CronJob;
+const fetch = new CronJob("1 0 1 * *", fetchAllChampions);
+//get every champion each time the bot restarts. And every month
+fetch.start();
+
 var everyChampionFetched = [];
 
-https.get("https://www.leagueoflegends.com/en-us/champions/", (res) => {
-    const data = [];
+fetchAllChampions();
+function fetchAllChampions() {
+    https.get("https://www.leagueoflegends.com/en-us/champions/", (res) => {
+        const data = [];
 
-    res.on("data", (_) => data.push(_));
-    res.on("end", () => {
-        const $ = cheerio.load(data.join());
-        const championSpans = $("span.style__Text-n3ovyt-3.gMLOLF");
-        championSpans.each(function (i, elem) {
-            everyChampionFetched.push($(this).text().toLowerCase());
+        res.on("data", (_) => data.push(_));
+        res.on("end", () => {
+            const $ = cheerio.load(data.join());
+            const championSpans = $("span.style__Text-n3ovyt-3.gMLOLF");
+            everyChampionFetched = []; //reset the list
+            championSpans.each(function () {
+                everyChampionFetched.push($(this).text().toLowerCase());
+            });
         });
-        // console.log(everyChampionFetched);
     });
-});
+}
