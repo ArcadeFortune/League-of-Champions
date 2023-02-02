@@ -26,6 +26,7 @@ module.exports = (client) => {
             );
             const finalAnswer = beautifyJson(jsonScrape);
             message.reply(finalAnswer);
+            console.log(message.author.username, "searched up", currentChampion, currentAbility);
         }
     });
 
