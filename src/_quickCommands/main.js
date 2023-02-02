@@ -8,7 +8,7 @@ module.exports = (client) => {
         //////////////////////      CODE      ////////////////////////////
         const everyChampion = fetchEveryChampion(); //array
         const everyAbilites = fetchEveryAbilities(); //array
-        const currentChampion = firstWordOf(message); //string
+        const currentChampion = firstWordOf(message, everyChampion); //string
         const currentAbility = restOf(message, currentChampion); //string
 
         if (
@@ -26,7 +26,7 @@ module.exports = (client) => {
             );
             const finalAnswer = beautifyJson(jsonScrape);
             message.reply(finalAnswer);
-            console.log(message.author.username, "searched up", currentChampion, currentAbility);
+            console.log(message.author.username, "searched up", currentChampion.charAt(0).toUpperCase() + currentChampion.slice(1), currentAbility.toUpperCase());
         }
     });
 
@@ -38,12 +38,18 @@ module.exports = (client) => {
         return ["p", "q", "w", "e", "r"];
     }
 
-    function firstWordOf(message) {
-        return message.content.split(" ")[0];
+    function firstWordOf(message, everyChampion) {
+        var everyChampionDoubleName = [] //list of all champions with more than one name
+        for (var champName of everyChampion) {
+            if (champName.includes(" ")) {
+                everyChampionDoubleName.push(champName)
+            }
+        }
+        return message.content.split(" ")[0].toLowerCase();
     }
 
     function restOf(message, firstWordOfMessage) {
-        return message.content.substring(firstWordOfMessage.length + 1);
+        return message.content.substring(firstWordOfMessage.length + 1).toLowerCase();
     }
 
     function isCommand(
@@ -80,6 +86,7 @@ module.exports = (client) => {
 const cheerio = require("cheerio");
 const axios = require("axios");
 const https = require("https");
+const { measureMemory } = require("vm");
 const CronJob = require("cron").CronJob;
 const fetch = new CronJob("1 0 1 * *", fetchAllChampions);
 //get every champion each time the bot restarts. And every month
@@ -103,3 +110,7 @@ function fetchAllChampions() {
         });
     });
 }
+// TODO
+
+// WHEN TYPING 'TAHM', SHOULD RETURN TAHM KNENCH. (in function firstWordOf())
+
