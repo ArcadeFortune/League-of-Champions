@@ -26,7 +26,7 @@ module.exports = (client) => {
             );
             const finalAnswer = beautifyJson(jsonScrape);
             message.reply(finalAnswer);
-            console.log(message.author.username, "searched up", currentChampion, currentAbility);
+            console.log(message.author.username, "searched up", currentChampion.charAt(0).toUpperCase() + currentChampion.slice(1), currentAbility.toUpperCase());
         }
     });
 
@@ -45,13 +45,6 @@ module.exports = (client) => {
                 everyChampionDoubleName.push(champName)
             }
         }
-        console.log(everyChampionDoubleName)
-        console.log(message.content)
-        // console.log(everyChampion)
-        // console.log(everyChampion.find(function(str) {return str == "pyk"}))
-        // for (var indx in everyChampion) {
-        //     if (everyChampion[indx].match(/aa/)) console.log(indx)
-        // }
         return message.content.split(" ")[0].toLowerCase();
     }
 
@@ -117,3 +110,7 @@ function fetchAllChampions() {
         });
     });
 }
+// TODO
+
+// WHEN TYPING 'TAHM', SHOULD RETURN TAHM KNENCH. (in function firstWordOf())
+
