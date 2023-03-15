@@ -25,7 +25,11 @@ module.exports = (client) => {
                 currentAbility
             );
             const finalAnswer = beautifyJson(jsonScrape);
-            message.reply(finalAnswer);
+            if (finalAnswer == "") {
+                message.reply("this champion ability is currently not supported.")
+            } else {
+                message.reply(finalAnswer);
+            }
             console.log(message.author.username, "searched up", currentChampion.charAt(0).toUpperCase() + currentChampion.slice(1), currentAbility.toUpperCase());
         }
     });
@@ -111,6 +115,3 @@ function fetchAllChampions() {
     });
 }
 // TODO
-
-// WHEN TYPING 'TAHM', SHOULD RETURN TAHM KNENCH. (in function firstWordOf())
-
